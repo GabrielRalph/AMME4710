@@ -31,3 +31,9 @@ for i = 1:n
     subplot(s, s, i);
     result.plotResults(validation_data(i), false);
 end
+
+%%
+clf;
+r1 = cat(2, results{6}.image, results{17}.image);
+r2 = cat(2, results{6}.filtered, results{17}.filtered);
+imwrite(cat(1, r1, r2), "figs/filt.jpg");
