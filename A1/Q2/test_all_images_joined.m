@@ -22,19 +22,19 @@ fprintf("solver took %fms on average (max freq %dHz)\n", round(1000 * run_sum/n)
 %% Display validated results
 clf;
 load(join([directory, "/legobrickjoined_validation"], ""));
-dresults = results(7:10);
+dresults = results;%(7:10);
 n = length(dresults);
 
 s = ceil(sqrt(n));
-tdc = 0;
-tds = 0;
+vals = zeros(n, 2);
 for i = 1:n
     result = dresults{i};
-
     subplot(s, s, i);
-    [dc, ds] = result.plotResults(validation_data_joined(i+6));
-    tdc = tdc + dc;
-    tds = tds + ds;
+    [dc, ds] = result.plotResults(validation_data_joined(i));
+    vals(i, :) = [dc, ds];
 end
-fprintf("avg dc %ipx, avg ds %.1f%%\n\n", round(tdc / n), (tds/n));
+
+m = mean(vals);
+sd = std(vals);
+fprintf("avg dc %.1fpx(%.1f), avg ds %.1f%%(%.1f)\n", round(m(1)), sd(1), m(2), sd(2));
 
