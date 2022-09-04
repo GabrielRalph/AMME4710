@@ -204,21 +204,20 @@ classdef findLegoBricksJoined
             
             
             % plot bounding rectangles
-%             plot(b.outline(:, 1), b.outline(:, 2), "-r", 'LineWidth', 1.5);
-%             rectangle('Position', b.position, 'LineWidth', 1.5);
+            plot(b.outline(:, 1), b.outline(:, 2), "-w", 'LineWidth', 3);
+            rectangle('Position', b.position, 'LineWidth', 3, 'EdgeColor', 'w');
             
             % plot points of interest
 %             sp = b.start;
 %             ep = b.end;
-            c = obj.conncomps{:, "Centroid"};
-            plot(c(:, 1),c(:, 2), "*w");
-            plot(b.points(:, 1), b.points(:, 2), "o", 'Color', [0,0,0], "LineWidth", 1.5);
+            
+            plot(b.points(:, 1), b.points(:, 2), "*w");
 %             plot(sp(:, 1), sp(:, 2), "o", 'Color', [0,0,0]);
 %             plot(ep(:, 1), ep(:, 2), "o", 'Color', [0,0,0]);
 %             text(sp(1) + 10, sp(2) - 10, "s", 'Color', [1, 1, 1]);
 %             text(ep(1) + 10, ep(2) - 10, "e", 'Color', [1, 1, 1]);
-%             plot(b.pa(:, 1), b.pa(:, 2), "ow");
-%             plot(b.pb(:, 1), b.pb(:, 2), "ow");
+            plot(b.pa(:, 1), b.pa(:, 2), "ow");
+            plot(b.pb(:, 1), b.pb(:, 2), "ow");
             
             
             
@@ -231,8 +230,8 @@ classdef findLegoBricksJoined
                 cdelta = 0;
                 sdelta = 0;
             end
-%             t1 = sprintf("center delta = %dpx\nsize delta = %.1f%%\n", round(cdelta), sdelta);
-%             title(t1);
+             t1 = sprintf("center delta = %dpx\nsize delta = %.1f%%\n", round(cdelta), sdelta);
+             title(t1);
         end
     end
     
