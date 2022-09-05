@@ -9,6 +9,8 @@ classdef findLegoBricks
        morthology
        conncomps
        bricks
+       
+       runtimes
     end
     
     methods
@@ -19,17 +21,28 @@ classdef findLegoBricks
             obj.image = double(image) / 255;
             [obj.height, obj.width, ~] = size(image);
             
+            times = zeros(6, 1);
+             
+            tic;
             obj = obj.makeFiltered();
-            
+            times(1) = toc;
+            tic;
             obj = obj.makeGrayscale(0.15);
-
+            times(2) = toc;
+            tic
             obj = obj.makeEdgeMorthology(1);
-            
+            times(3) = toc;
+            tic
             obj = obj.findConnComps();
-            
-            obj = obj.filterConnComps(75, 200, 1.4, 0.15);
-            
+            times(4) = toc;
+            tic
+            obj = obj.filterConnComps(70, 200, 1.4, 0.15);
+            times(5) = toc;
+            tic
             obj = obj.findBricks(0.35, 0.2);
+            times(6) = toc;
+            
+            obj.runtimes = times;
         end
 
         %% Main algorithm steps
@@ -158,9 +171,6 @@ classdef findLegoBricks
                 hsv = rgb2hsv(rgb);
                 hue = hsv(:, :, 1);
                 filter = (hsv(:,:,2) > saturation_ts) & (hsv(:,:,3) > value_ts);
-%   
-%                 h = histogram(round(360 * hue(filter)));
-%                 hue = mean(h.BinEdges(7:end));
                 hue = mode(round(360 * hue(filter)));
                 
                 if ~isnan(hue)
@@ -247,15 +257,16 @@ classdef findLegoBricks
         %% Validation and display methods
         % Plots bricks as rectangles with text color labels if validation
         % data is provide then wrong color guesses will be shown in red
-        function plotResults(obj, validation, show_stats)
+        function vdata = plotResults(obj, validation, show_stats)
+            vdata = 0;
             validate = exist("validation", "var");
             if ~exist("show_stats", "var"), show_stats = false; end
             if validate, vdata = obj.validateBricks(validation); end
             
              imshow(obj.image);
              hold on
+             
            
-    
             brcks = obj.bricks;
             for i = 1:length(brcks)
                 ecolor = 'w';
@@ -276,51 +287,6 @@ classdef findLegoBricks
             end
         end
         
-        function pdata = plotBricks(obj)
-            brcks = obj.bricks;
-            n = length(brcks);
-            pdata = zeros(2 * n, 1);
-            for i = 1:n
-                ecolor = 'w';
-                
-                
-                p = brcks{i}.center;
-                c = brcks{i}.size;
-                name = brcks{i}.color;
-            
-                color = hsv2rgb([brcks{i}.hue/360, 1, 1]);
-                pdata(i*2 - 1) = rectangle('Position',brcks{i}.position,'LineWidth',2, 'EdgeColor', ecolor);
-                pdata(i*2) = text(p(1), p(2) - c(2)/2 - 20, name, 'Color', color, 'HorizontalAlignment', 'center', 'FontSize',18);
-            end
-        end
-        
-        function animate(obj, dt, img)
-             tf = 0.95;
-             tic
-             set(img, 'CData', obj.image);
-             pause(tf * dt/2);
-             
-             set(img, 'CData', obj.filtered);
-             pause(tf * dt/2);
-             
-             set(img, 'CData', repmat(obj.grayscale, 1, 1, 3));
-             pause(tf * dt);
-             
-             set(img, 'CData', repmat(obj.morthology, 1, 1, 3));      
-             hold on;
-             pdata = zeros(length(obj.conncomps), 1);
-             for i = 1:length(obj.conncomps)
-                 pdata(i) = rectangle('Position',obj.conncomps{i}.position,'LineWidth',2, 'EdgeColor', "w");
-             end
-             pause(dt * tf);
-             delete(pdata);
-          
-             set(img, 'CData', obj.image);
-             pdata = obj.plotBricks();
-             pause(4 * dt - toc);
-             delete(pdata);
-        end
-           
         % Finds the closest bricks to the actual bricks position and maps
         % the information accordingly
         function vdata = validateBricks(obj, validation)
