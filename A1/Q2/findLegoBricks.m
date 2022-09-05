@@ -272,7 +272,7 @@ classdef findLegoBricks
                     name = sprintf("%s [%.0f]",brcks{i}.color,brcks{i}.hue);
                 end
                 color = hsv2rgb([brcks{i}.hue/360, 1, 1]);
-                text(p(1), p(2) - c(2)/2 - 20, name, 'Color', color, 'HorizontalAlignment', 'center', 'FontSize',18);
+                text(p(1), p(2) - c(2)/2 - 20, name, 'Color', color, 'HorizontalAlignment', 'center', 'FontSize',10);
             end
         end
         
