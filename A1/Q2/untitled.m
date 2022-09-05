@@ -14,21 +14,32 @@ regions = [
     170, 215, 14;
     613, 343, 17;
     722, 124, 2;
-    420, 597, 3
+    420, 597, 3;
+    772, 155, 11;
+    821, 105, 7;
+    821, 70, 4;
+    84, 613, 14;
+    878, 351, 6;
+    81, 612, 2;
+    500, 500, 5;
+    823, 460, 8;
+    901, 636, 13;
  ]
 
+
+%%
 bgrow = false;
 bgimg = false;
-for i = 1:16
+for i = 1:25
     r = regions(i, :);
-    img = results{r(3)}.image(r(2):(r(2)+49), r(1):(r(1)+49), :);
+    img = results{r(3)}.filtered(r(2):(r(2)+49), r(1):(r(1)+49), :);
     if ~bgimg
        bgimg = img; 
     else
        bgimg = cat(2, bgimg, img);
     end
     
-    if mod(i, 4) == 0
+    if mod(i, 5) == 0
         if ~bgrow
             bgrow = bgimg;
         else
@@ -37,5 +48,13 @@ for i = 1:16
         bgimg = false;
     end
 end
-clf;
-imwrite(bgrow, "figs/bgpx.jpg");
+% imwrite(bgrow, "figs/filt_bgpx.jpg");
+%%
+hsv = rgb2hsv(bgrow);
+sv = round(squeeze(reshape(hsv(:, :, 2:3), [], 1, 2)) * 100);
+sv = unique(sv, 'rows');
+bg = cat(3, ones(100), ones(100, 1) * (1:100), (1:100)' * ones(1, 100))/100;
+imshow(hsv2rgb(bg));
+hold on
+plot(sv(:, 1), sv(:, 2), '.');
+rectangle('Position', [15, 15, 200 - 30, 200 - 30], 'Curvature', [1, 1], 'EdgeColor', [0.5,0.6,1], 'LineWidth', 3);
