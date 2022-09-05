@@ -10,9 +10,7 @@ classdef findLegoBricksJoined
        conncomps
        block
        
-       edges_from
-       edges_to
-       
+       runtimes
     end
     
     methods
@@ -23,8 +21,12 @@ classdef findLegoBricksJoined
             obj.image = double(image) / 255;
             [obj.height, obj.width, ~] = size(image);
             
-            obj = obj.filterImage();
+            times = zeros(6, 1);
             
+            tic
+            obj = obj.filterImage();
+            times(1) = toc;
+            tic
             obj = obj.segmentColours([
                 300, 15; % red
                 15, 42;  % orange
@@ -33,12 +35,18 @@ classdef findLegoBricksJoined
                 63, 108; % light green
                 180, 300 % blue
             ], 0.15, 0.01);
-            
+            times(2) = toc;
+            tic;
             obj = obj.makeMorthology(11, 10);
-            
+            times(3) = toc;
+            tic;
             obj = obj.findConnComps(50, 200);
-            
+            times(4) = toc;
+            tic;
             obj = obj.findJoinedBricks(15, 75, 0.88);
+            times(5) = toc;
+            
+            obj.runtimes = times;
         end
         
         %% Main Algorithm steps
@@ -161,65 +169,20 @@ classdef findLegoBricksJoined
             
             img = hsv2rgb(hsv);
         end
-        
-        function animate(obj, dt, img)
-            tf = 0.95;
-            tic
-            set(img, 'CData', obj.image);
-            pause(tf * dt/2);
-            
-            set(img, 'CData', obj.filtered);
-            pause(tf * dt/2);
-            
-            set(img, 'CData', obj.getMorthologyImage());
-            hold on;
-            pdata = plot(obj.conncomps{:, "Centroid"}(:, 1), obj.conncomps{:, "Centroid"}(:, 2), "*w");
-            pause(tf * dt);
-            delete(pdata);
-            
-            set(img, 'CData', obj.image);
-            hold on
-            pdata = plot(obj.block.points(:, 1), obj.block.points(:, 2), "*w");
-            pause(tf * dt);
-            delete(pdata);
-            
-            hold on
-            pdata = [
-                plot(obj.block.pa(1), obj.block.pa(2), "*w");
-                plot(obj.block.pb(1), obj.block.pb(2), "*w");
-                plot(obj.block.outline(:, 1), obj.block.outline(:, 2), "-w", 'LineWidth', 3);
-                rectangle('Position', obj.block.position, 'LineWidth', 3, "EdgeColor", "w")
-            ];
-            pause(4 * dt - toc);
-            delete(pdata);
-        end
-        
+     
         function [cdelta, sdelta] = plotResults(obj, v)
-            
             imshow(obj.filtered);
-            
             hold on;
-   
             b = obj.block;
-            
             
             % plot bounding rectangles
             plot(b.outline(:, 1), b.outline(:, 2), "-w", 'LineWidth', 3);
             rectangle('Position', b.position, 'LineWidth', 3, 'EdgeColor', 'w');
             
             % plot points of interest
-%             sp = b.start;
-%             ep = b.end;
-            
             plot(b.points(:, 1), b.points(:, 2), "*w");
-%             plot(sp(:, 1), sp(:, 2), "o", 'Color', [0,0,0]);
-%             plot(ep(:, 1), ep(:, 2), "o", 'Color', [0,0,0]);
-%             text(sp(1) + 10, sp(2) - 10, "s", 'Color', [1, 1, 1]);
-%             text(ep(1) + 10, ep(2) - 10, "e", 'Color', [1, 1, 1]);
             plot(b.pa(:, 1), b.pa(:, 2), "ow");
             plot(b.pb(:, 1), b.pb(:, 2), "ow");
-            
-            
             
             % get the error margins from the validation data and display it
             % in the title

@@ -3,32 +3,34 @@ clc;
 
 % Get image names from directory
 directory  = "lego_brick_images_joined/";
-image_query = join([directory, "*.jpg"], "");
+image_query = append(directory, "*.jpg");
 files = dir(image_query);
-% files = files(4:8);
+
 % solve algorithm on all images in the directory
 n = length(files);
 results = cell(n, 1);
-run_sum = 0;
+times = zeros(n, 6);
 for i = 1:n
     image = imread(append(directory, files(i).name));
-    tic;
     results{i} = findLegoBricksJoined(image);
-    run_sum = run_sum + toc;
+    times(i, :) = results{i}.runtimes;
 end
 
-fprintf("solver took %fms on average (max freq %dHz)\n", round(1000 * run_sum/n), round(1/(run_sum/n)));
+avgtimes = mean(times);
+avgtime = round(sum(avgtimes) * 1000);
+avgtimes = 100 * avgtimes / sum(avgtimes);
+
+fprintf("solver took %.0fms on average (max freq %.0fHz)\nfiltering: %.0f%%\nsegmentation: %.0f%%\nedge morthology: %.0f%%\nfind conncomps: %.0f%%\nfind blocks: %.0f%%\n", avgtime, 1000/avgtime, avgtimes(1:5));
 
 %% Display validated results
 clf;
-load(join([directory, "/legobrickjoined_validation"], ""));
-dresults = results;%(7:10);
-n = length(dresults);
+load(append(directory, "/legobrickjoined_validation"));
+n = length(results);
 
 s = ceil(sqrt(n));
 vals = zeros(n, 2);
 for i = 1:n
-    result = dresults{i};
+    result = results{i};
     subplot(s, s, i);
     [dc, ds] = result.plotResults(validation_data_joined(i));
     vals(i, :) = [dc, ds];
@@ -36,5 +38,4 @@ end
 
 m = mean(vals);
 sd = std(vals);
-fprintf("avg dc %.1fpx(%.1f), avg ds %.1f%%(%.1f)\n", round(m(1)), sd(1), m(2), sd(2));
-
+fprintf("avg center delta %.1fpx (std = %.1f), avg delta size %.1f%%(std = %.1f)\n", round(m(1)), sd(1), m(2), sd(2));
