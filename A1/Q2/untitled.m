@@ -50,11 +50,19 @@ for i = 1:25
 end
 % imwrite(bgrow, "figs/filt_bgpx.jpg");
 %%
+clf;
 hsv = rgb2hsv(bgrow);
 sv = round(squeeze(reshape(hsv(:, :, 2:3), [], 1, 2)) * 100);
-sv = unique(sv, 'rows');
+[c, ia, ic] = unique(sv, 'rows');
 bg = cat(3, ones(100), ones(100, 1) * (1:100), (1:100)' * ones(1, 100))/100;
 imshow(hsv2rgb(bg));
 hold on
-plot(sv(:, 1), sv(:, 2), '.');
+
+for i = 1:length(c)
+    count = sqrt(length(ic(ic == i)));
+    f = count/45;
+    r = 0.5 + f;
+    rectangle('Position', [c(i, 1) - r/2, c(i, 2) - r/2, r, r], 'FaceColor', hsv2rgb([0.3, f, 1]), 'Curvature', [1, 1], 'LineStyle', 'none');
+end
+
 rectangle('Position', [15, 15, 200 - 30, 200 - 30], 'Curvature', [1, 1], 'EdgeColor', [0.5,0.6,1], 'LineWidth', 3);
