@@ -1,0 +1,5 @@
+*.pdf
+/dataset
+/FeatureExtraction
+/stereodata
+/ModelTraining
