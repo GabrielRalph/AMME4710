@@ -3,27 +3,270 @@
   <head>
     <meta charset="utf-8">
     <title></title>
+    <link rel="stylesheet" href="https://arcms.w4v.es/Assets/Supreme/stylesheet.css">
     <script type = "module" src = "./signLive.js"></script>
   </head>
   <body>
-    <sign-live></sign-live>
+    <p-slide>
+      <h1>Introduction</h1>
+      <span>Problem Statement - to offer a computer vision solution to the detection of American Sign Language (ASL) lettering through the aid of machine learning</span>
+      <ul>
+        <li>
+          ASL has a larger number of datasets available than other sign languages (eg. AusLan)
+        </li>
+        <li>
+          Can be used for applications such as live captioning, or as a learning resource
+        </li>
+        <li>
+          Since sign language is a visual language, capturing and processing data through CV is logical
+        </li>
+      </ul>
+    </p-slide>
+
+    <p-slide>
+      <h1>Lit Review</h1>
+      <div style = "font-size: 0.9em;">
+        <ul>
+          <li>
+            What other approaches exist
+          </li>
+          <li>
+            State of the art stuff - architectures used, image processing used, results from these experiments
+          </li>
+        </ul>
+        First attempts in the 1970s<br />
+        <row-1 class = "smll">
+          <div>
+            Key Findings: (Kadous, 1970)
+            <ul>
+              <li>
+                Used shallow based learning
+              </li>
+              <li>
+                Predefined bounding box limits noise
+              </li>
+              <li>
+                Use of sensor glove to provide depth information
+              </li>
+              <li>
+                Achieved accuracy of 80%
+              </li>
+            </ul>
+          </div>
+          <div>
+            Key Findings: (Rashad,2019)
+            <ul>
+              <li>
+                Uses wearable motion sensors
+              </li>
+              <li>
+                Attempts neural network and SVM approaches
+              </li>
+              <li>
+                Achieved 93.7% accuracy with NN and 85.56% for SVM - why we chose SVM
+              </li>
+            </ul>
+          </div>
+          <div>
+            Key Findings: (Omar,2019)
+            <ul>
+              <li>
+                Discusses validity/benefit of thresholding and Gaussian filtering
+              </li>
+              <li>
+                Removes info such as skin colour and shadows - same as edge detection
+              </li>
+            </ul>
+          </div>
+        </row-1>
+        YOLOv3 is state of the art, having shown excellent performance on video data as it is fast
+        Many attempts use gloves to assist machine learning however not practical in real life
+      </div>
+    </p-slide>
+
+    <p-slide>
+      <h1>Method - Preparing data</h1>
+      <div style = "font-size: 0.9em;">
+        <ul>
+          <li>
+            Dataset description (where it’s from, what kinds of images, etc.)
+          </li>
+          <li>
+            Subsampling
+          </li>
+          <li>
+            Edge detection, preprocessing
+          </li>
+        </ul>
+        Contains 27000 images subsampled to 2700 for training data 100 images for each possible ASL character
+        <ul>
+          <li>
+            Images had various orientations of hands in different environments
+          </li>
+        </ul>
+        Seperated into training and testing datasets
+        Canny edge detection to help isolate hand and remove noise
+        <ul>
+          <li>
+            Also helped to remove effects of shadows and skin tone
+          </li>
+          <li>
+            Helps refine the data so the algorithm is limited to analyse what really matters - the shape of hand
+          </li>
+        </ul>
+
+        <span style = "font-size: 0.8em">Dataset retrieved from: https://www.kaggle.com/datasets/lexset/synthetic-asl-alphabet</span>
+      </div>
+      <!-- <img src = "filesystem:https://docs.google.com/persistent/docs/documents/1neRnNypoHdARpCgIy-gWV0t-lDmg6ykXurENhzFnBnI/image/1NfzezQj_eO4iWBVr0t3PC_7sixVNNFnAh0roq2q87Ns" /> -->
+    </p-slide>
+    <p-slide>
+      <h1>Method - Processing Data (Cont.)</h1>
+      About the dataset
+      <ul>
+        <li>
+          100 images for 27 classes
+        </li>
+        <li>
+          Hands in various orientations
+        </li>
+        <li>
+          Seperated in training and testing datasets
+        </li>
+      </ul>
+    </p-slide>
+    <p-slide>
+      <h1>Method - Training</h1>
+      <ul>
+        <li>
+          Produced models on AlexNet, YOLO architectures
+        </li>
+        <li>
+          AlexNet sequential model, YOLO residual model
+        </li>
+        <li>
+          Played around with hyper parameters, image sizing issues
+        </li>
+        <li>
+          Effect of convolutions, etc. How is the algorithm extracting features
+        </li>
+      </ul>
+    </p-slide>
+    <p-slide>
+      <h1>Method - Implementation</h1>
+      <ul>
+        <li>
+          Implementing on ubiquitous platform
+        </li>
+        <li>
+          Real time accurate detection
+        </li>
+        <li>
+          Captioning
+        </li>
+        <li>
+          Detecting hands - predefined area where hands need to be placed
+        </li>
+        <li>
+          Crop frame and predict with TensorFlow.js
+        </li>
+        <li>
+          Localisation of web solution
+        </li>
+      </ul>
+    </p-slide>
+    <p-slide>
+      <h1>Experimental setup, benchmarking and Results</h1>
+      <ul>
+        <li>
+          Data is collected → training set subsampled → edge detection to enhance relevant features and negate effect of environment/skin colour → pass through CNN inspired by AlexNet → tested against our own dataset
+        </li>
+        <li>
+          Validation accuracy of 74.5%
+        </li>
+      </ul>
+    </p-slide>
+    <p-slide>
+      <h1>Live Demo</h1>
+    </p-slide>
+
+    <p-slide>
+      <h1>Discussion, Conclusion, Future Work</h1>
+      <ul>
+        <li>
+          Implementing hand detection
+        </li>
+        <li>
+          Using larger dataset, more epochs, more efficient algorithms, distributed system training
+        </li>
+        <li>
+          Which letters were detected better
+        </li>
+        <li>
+          Detection of words
+        </li>
+      </ul>
+    </p-slide>
   </body>
 
+  <script>
+    let n = document.querySelectorAll("p-slide").length;
+    let slide = 0;
+    function gotoSlide(x){
+      if (x < 0) x = 0;
+      if (x >= n) x = n - 1;
+      let sh = window.innerHeight;
+      slide = x;
+      window.scrollTo(0, sh * slide);
+      console.log(sh * slide);
+    }
+
+    gotoSlide(0);
+    window.onkeyup = (e) => {
+      switch (e.key) {
+        case "ArrowUp": gotoSlide(slide - 1);break
+        case "ArrowDown": gotoSlide(slide + 1);break
+      }
+    }
+    window.onclick = (e) => {
+      gotoSlide(slide + 1);
+    }
+    window.oncontextmenu = (e) => {
+      gotoSlide(slide - 1);
+      e.preventDefault();
+    }
+  </script>
+
   <style>
-  body {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: 0;
+  row-1 {display: flex; width: 100%;}
+  row-1 > * {width: 100%;}
+  ul {
+    font-size: 0.8em;
   }
-    sign-live {
+  p-slide {
+    width: calc(100vw - 15vmax);
+    height:calc(100vh - 15vmax);
+    font-size: calc(1.3vw + 1.3vh);
+    padding: 7.5vmax;
+    display: block;
+    overflow: hidden;
+  }
+
+  li {
+    margin: 1em;
+    list-style-type: square;
+  }
+  body {
+    margin: 0;
+    font-family: "Supreme LL TT";
+    overflow: hidden;
+  }
+  h1:first-of-type {margin-top: 0;}
+    /* sign-live {
       display: block;
       width: 100%;
       height: 100%;
       position: relative;
-    }
+    } */
     .words {
       position: absolute;
       bottom: 0;
