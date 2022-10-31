@@ -1,7 +1,11 @@
 .img-row {width: 40%;}
+.img-row row-1 {gap:0;}
 .img-row img {width: 40%;}
 body {display: flex; flex-direction: column; align-items: center;}
-row-1 {display: flex; width: 100%;}
+row-1 {
+  display: flex; width: 100%;
+  gap:1em;
+}
 row-1 > * {width: 100%;}
 ul {
   font-size: 0.8em;
@@ -23,6 +27,9 @@ body {
   margin: 0;
   font-family: "Supreme LL TT";
   overflow: hidden;
+  counter-reset: tables;
+  counter-reset: figures;
+
 }
 h1:first-of-type {margin-top: 0;}
 
@@ -43,4 +50,57 @@ sign-live {
 }
 video {
   margin: auto;
+}
+
+table {
+  border-collapse: collapse;
+  margin: var(--figure-spacing) 0;
+  margin-bottom: calc(var(--figure-spacing) + var(--caption-spacing) + 1em);
+  position: relative;
+}
+table::after{
+  font-size: 0.5em;
+  counter-increment: tables;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  text-align: center;
+  white-space: pre;
+  content: "Table " counter(tables) "\a" attr(caption);
+  font-style: italic;
+  transform: translate(-50%, 100%);
+  padding-top: 1em;
+}
+figure {
+  position: relative;
+}
+figure::after{
+  font-size: 0.5em;
+  counter-increment: figures;
+  text-align: center;
+  display: block;
+  white-space: pre;
+  content: "Figure " counter(figures) "\a" attr(caption);
+  font-style: italic;
+  text-align: center;
+}
+
+tbody {
+  font-size: 0.65em;
+}
+thead {font-size: 0.8em}
+table td {
+  border: 1px solid black;
+  text-align: center;
+  vertical-align: middle;
+}
+thead td {
+  background: #2f3232;
+  color: #e9ebf1;
+}
+td.selected {
+  background: #d0fbd0;
+}
+td {
+  padding: 0.3em;
 }

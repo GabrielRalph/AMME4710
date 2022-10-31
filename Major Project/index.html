@@ -11,7 +11,7 @@
   <body>
     <p-slide>
       <h1>Introduction</h1>
-      
+
       <span>Problem Statement - to offer a computer vision solution to the detection of American Sign Language (ASL) lettering through the aid of machine learning</span>
       <ul>
         <li>
@@ -27,65 +27,40 @@
     </p-slide>
 
     <p-slide>
-      <h1>Lit Review</h1>
+      <h1>Literature Review</h1>
 
-      <div style = "font-size: 0.9em;">
-        <ul>
-          <li>
-            What other approaches exist
-          </li>
-          <li>
-            State of the art stuff - architectures used, image processing used, results from these experiments
-          </li>
-        </ul>
-        First attempts in the 1970s<br />
-        <row-1 class = "smll">
-          <div>
-            Key Findings: (Kadous, 1970)
-            <ul>
-              <li>
-                Used shallow based learning
-              </li>
-              <li>
-                Predefined bounding box limits noise
-              </li>
-              <li>
-                Use of sensor glove to provide depth information
-              </li>
-              <li>
-                Achieved accuracy of 80%
-              </li>
-            </ul>
-          </div>
-          <div>
-            Key Findings: (Rashad,2019)
-            <ul>
-              <li>
-                Uses wearable motion sensors
-              </li>
-              <li>
-                Attempts neural network and SVM approaches
-              </li>
-              <li>
-                Achieved 93.7% accuracy with NN and 85.56% for SVM - why we chose SVM
-              </li>
-            </ul>
-          </div>
-          <div>
-            Key Findings: (Omar,2019)
-            <ul>
-              <li>
-                Discusses validity/benefit of thresholding and Gaussian filtering
-              </li>
-              <li>
-                Removes info such as skin colour and shadows - same as edge detection
-              </li>
-            </ul>
-          </div>
-        </row-1>
-        YOLOv3 is state of the art, having shown excellent performance on video data as it is fast
-        Many attempts use gloves to assist machine learning however not practical in real life
-      </div>
+      <row-1>
+        <div>
+          Attempts at automated sign language detection in 1970
+          <br />
+          <br />
+          Key Takeaways
+          <ul>
+            <li>
+              Many attempts use hand sensors
+            </li>
+            <li>
+              Image pre-processing using filtering and thresholding is effective
+            </li>
+            <li>
+              Neural networks have produced the best results
+            </li>
+          </ul>
+        </div>
+        <table>
+        <thead>
+          <tr><td>Method</td> <td>Accuracy (%)</td></tr>
+        </thead>
+        <tbody>
+          <tr><td>Instance Based Learning (Kadeous M, 1970)</td><td>80.00</td></tr>
+          <tr><td>Decision Tree (Kadeous M, 1970)</td><td>55.00</td></tr>
+          <tr><td>Support Vector Machine (Rashad S. et al. 2019)</td><td>96.41</td></tr>
+          <tr><td>Neural Network (Rashad S. et al. 2019)</td><td>91.81</td></tr>
+          <tr><td>k-Nearest Neighbour (Sharma A. et al. 2020)</td><td>95.81</td></tr>
+          <tr><td>Neural Network (Raj R. et al. 2018)</td><td>99.00</td></tr>
+        </tbody>
+      </table>
+      </row-1>
     </p-slide>
 
     <p-slide>
@@ -93,78 +68,60 @@
 
       <row-1>
         <div style = "width: 75%; font-size: 0.9em;">
+          About the dataset
           <ul>
             <li>
-              Dataset description (where it’s from, what kinds of images, etc.)
+              100 images for 27 classes
             </li>
             <li>
-              Subsampling
+              Hands in various orientations
             </li>
             <li>
-              Edge detection, preprocessing
+              Seperated in training and testing datasets
             </li>
           </ul>
-          Contains 27000 images subsampled to 2700 for training data 100 images for each possible ASL character
+          Canny Edge Detection
           <ul>
             <li>
-              Images had various orientations of hands in different environments
-            </li>
-          </ul>
-          Seperated into training and testing datasets
-          Canny edge detection to help isolate hand and remove noise
-          <ul>
-            <li>
-              Also helped to remove effects of shadows and skin tone
+              Removes skin tone, lighting effects, and background
             </li>
             <li>
-              Helps refine the data so the algorithm is limited to analyse what really matters - the shape of hand
+              Refines the data
             </li>
           </ul>
           <span style = "font-size: 0.7em">Dataset retrieved from: https://www.kaggle.com/datasets/lexset/synthetic-asl-alphabet</span>
         </div>
 
         <div class = "img-row">
-          <row-1><img src = "./original1.png" /><img src = "./canny1.png" /></row-1>
-          <row-1><img src = "./original2.png" /><img src = "./canny2.png" /></row-1>
-          <row-1><img src = "./original3.png" /><img src = "./canny3.png" /></row-1>
+          <figure>
+                <row-1><img src = "./original1.png" /><img src = "./canny1.png" /></row-1>
+                <row-1><img src = "./original2.png" /><img src = "./canny2.png" /></row-1>
+                <row-1><img src = "./original3.png" /><img src = "./canny3.png" /></row-1>
+          </figure>
         </div>
       </row-1>
     </p-slide>
 
-    <p-slide>
-      <h1>Method - Processing Data (Cont.)</h1>
 
-      About the dataset
-      <ul>
-        <li>
-          100 images for 27 classes
-        </li>
-        <li>
-          Hands in various orientations
-        </li>
-        <li>
-          Seperated in training and testing datasets
-        </li>
-      </ul>
-    </p-slide>
 
     <p-slide>
       <h1>Method - Training</h1>
 
       <ul>
         <li>
-          Produced models on AlexNet, YOLO architectures
+          Machine Learning algorithm was made using the Tensorflow Keras API
         </li>
         <li>
-          AlexNet sequential model, YOLO residual model
+          Architecture based off of AlexNet, with modified input image size
         </li>
         <li>
-          Played around with hyper parameters, image sizing issues
-        </li>
-        <li>
-          Effect of convolutions, etc. How is the algorithm extracting features
+          Model trained for 5 epochs
         </li>
       </ul>
+      <figure>
+
+        <img src ="./fig5.png" width = "70%" style = "margin: 3% 15%"/>
+      </figure>
     </p-slide>
 
     <p-slide>
@@ -204,7 +161,9 @@
             Validation accuracy of 74.5%
           </li>
         </ul>
-        <img style = "width: 50%" src = "./history.png" />
+        <figure>
+          <img style = "width: 50%" src = "./history.png" />
+        </figure>
       </row-1>
     </p-slide>
 
@@ -219,16 +178,16 @@
 
       <ul>
         <li>
-          Implementing hand detection
+          Not a state-of-the-art solution, as there are more efficient models and methods (as per literature review)
         </li>
         <li>
-          Using larger dataset, more epochs, more efficient algorithms, distributed system training
+          The accuracy can be improved if it is run for more epochs and if more data is used
         </li>
         <li>
-          Which letters were detected better
+          Future work could involve using better models and expanding the solution to interpreting words and sentences, which involve dynamic hand movements
         </li>
         <li>
-          Detection of words
+          Experiment with alternate neural network architectures (i.e YOLOv3)
         </li>
       </ul>
     </p-slide>
