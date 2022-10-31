@@ -1,6 +1,7 @@
 classdef SceneClassifier
 
     properties
+<<<<<<< HEAD
         model;  % computed model
         kfolds; % number of folds
         valmat; % validation matrix [confusion; top-k]
@@ -10,6 +11,13 @@ classdef SceneClassifier
         featrparams;
         
         revision; %
+=======
+        images;
+        groundTruthLabels;
+        model;
+        features;
+        testidx
+>>>>>>> 72d05b5737bd13b9b0f2773adf8aa0de0a14a2f8
     end
     
     properties (Constant)
@@ -25,6 +33,7 @@ classdef SceneClassifier
     end
     
     methods
+<<<<<<< HEAD
         function obj = SceneClassifier()
             obj.kfolds = 8;
         end
@@ -192,6 +201,84 @@ classdef SceneClassifier
         function [data, ytruth] = getDataset(root) 
             labels = SceneClassifier.Scenes;
             ytruth = [];
+=======
+        function obj = SceneClassifier(data_filepath, model_filepath)
+            data = load(data_filepath).data;
+            obj.images = data.images;
+            obj.groundTruthLabels = data.groundTruthLabels;
+            obj.model = load(model_filepath);
+        end
+        
+        function obj = getFeatures(obj, feature_method_path, tuning_params)
+            addpath(feature_method_path);
+            imgs = obj.images;
+            n = length(imgs);
+            f = [];
+            if n > 0
+                dim = length(get_feature_space(imgs{1}, tuning_params));
+                f = zeros(n, dim);
+                for i = 1:length(imgs)
+                    f(i, :) = get_feature_space(imgs{i}, tuning_params);
+                    fprintf("i = %.0f\n\n", i);
+                end
+            end
+            obj.features = f;
+        end
+        
+        function obj = trainModel(obj)
+            gtl = obj.groundTruthLabels;
+            f = obj.features;
+            n = length(gtl);
+            
+            ridx = randperm(n);
+            midi = ceil(n/2);
+            aidx = ridx(1:midi);
+            bidx = ridx((midi + 1):end);
+            
+            x = f(aidx, :);
+            y = gtl(aidx)';
+            
+            % train model
+            mdl = fitcecoc(x, y);
+         
+   
+            obj.model = mdl;
+            obj.testidx = bidx;
+        end
+        
+        function testModel(obj)
+            tx = obj.features(obj.testidx, :);
+            ty = obj.groundTruthLabels(obj.testidx);
+            
+            
+            [~, pintv] = predict(obj.model, tx);
+            [~, order] = sort(pintv, 2);
+            fprintf("\nModel Results\n");
+            for j = 1:7
+                correct = (repmat(ty, 1, 7) == order) & (order == j);
+                topk = cumsum(sum(correct));
+                topk = topk * 100 / topk(end);
+
+                fprintf("Top K Correct for Scene %s\n", SceneClassifier.Scenes(j))
+                for k = 1:4
+                    fprintf("\ttop-%.0f accuracy = %.2f%%\n", k, topk(k));
+                end
+            end
+            correct = (repmat(ty, 1, 7) == order);
+            topk = cumsum(sum(correct));
+            topk = topk * 100 / topk(end);
+            fprintf("Total Top K Correct\n")
+            for k = 1:4
+                fprintf("\ttop-%.0f accuracy = %.2f%%\n", k, topk(k));
+            end
+        end
+    end
+    
+    methods (Static)
+        function data = makeDataset(root, data_filename) 
+            labels = SceneClassifier.Scenes;
+            gtlabels = [];
+>>>>>>> 72d05b5737bd13b9b0f2773adf8aa0de0a14a2f8
             filenames = [];
             for i = 1:7
                 scene = labels(i);
@@ -199,17 +286,33 @@ classdef SceneClassifier
                 for j = 1:length(files)
                     filename = sprintf("%s/%s/%s", root, scene, files(j).name);
                     filenames = cat(1, filenames, [filename]);
+<<<<<<< HEAD
                     ytruth = cat(1, ytruth, [i]);
+=======
+                    gtlabels = cat(1, gtlabels, [labels(i)]);
+>>>>>>> 72d05b5737bd13b9b0f2773adf8aa0de0a14a2f8
                 end
             end
 
             n = length(filenames);
+<<<<<<< HEAD
             data = cell(n, 1);
             for i = 1:n
                 img = imread(filenames(i));
                 data{i} = img;
             end
 
+=======
+            images = cell(n, 1);
+            for i = 1:n
+                img = imread(filenames(i));
+                images{i} = img;
+            end
+
+            data.groundTruthLabels = gtlabels;
+            data.images = images;
+            save(data_filename, 'data');
+>>>>>>> 72d05b5737bd13b9b0f2773adf8aa0de0a14a2f8
         end
     end
 end

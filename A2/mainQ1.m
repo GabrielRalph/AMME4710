@@ -1,6 +1,7 @@
 clc;
 clear;
 
+<<<<<<< HEAD
 % Load data and parameters from the provided directory. Directory
 % must contain the following
 %   /images_left          (a folder containing left images)
@@ -111,3 +112,28 @@ total(9:11) = svision.pointCloudEvaluation();
 stats = cat(2, ["MinEig"; "Harris"; "BRISK"; "SURF"; "KAZE"; "Total"], cat(1, sts, total));
 
 svision.plotPointCloud();
+=======
+data_directory = "stereodata";
+
+% create an instance of the StereoVision algorithm loading relevant data
+% from the given directory
+%
+svision = StereoVision(data_directory);
+svision = svision.computePointCloudAll();
+%%
+clf;
+svision.plotPointCloud();
+set(gca,'color','w');
+
+%% testing max delta
+% max_deltas = linspace(0.0001, 0.05, 20);
+% n = length(max_deltas);
+% results = ones(n, 3);
+% results(:, 1) = max_deltas';
+% for i = 1:n
+%     svision.max_delta = max_deltas(i);
+%     svision = svision.computePointCloudAll();
+%     results(i, 2:3) = svision.pointCloudEvaluation();
+% end
+% plot(results(:, 1), results(:, 2), results(:, 1), results(:, 3));
+>>>>>>> 72d05b5737bd13b9b0f2773adf8aa0de0a14a2f8

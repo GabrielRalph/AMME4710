@@ -1,5 +1,8 @@
 *.DS_store
 *.asv
 *.zip
+<<<<<<< HEAD
 A2/*
 Tutorials/*
+=======
+>>>>>>> 72d05b5737bd13b9b0f2773adf8aa0de0a14a2f8

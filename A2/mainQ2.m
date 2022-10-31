@@ -1,5 +1,6 @@
 clc;
 clear;
+<<<<<<< HEAD
 SC = SceneClassifier();
 
 [data, y] = SceneClassifier.getDataset("dataset");
@@ -41,4 +42,18 @@ fprintf("extracting");
 x = SC.extractFeatureSpace(data);
 fprintf("\n\ndone\n");
 model = fitcecoc(x, y);
+=======
+
+classifier = open('classifier.mat').sClassifier;
+
+
+idx = fscmrmr(classifier.features, classifier.groundTruthLabels);
+mod(idx - 1, 10)
+
+% classifier.trainModel()
+%%
+
+% classifier.testModel();
+
+>>>>>>> 72d05b5737bd13b9b0f2773adf8aa0de0a14a2f8
 
