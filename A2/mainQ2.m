@@ -1,15 +1,44 @@
 clc;
 clear;
+SC = SceneClassifier();
 
-classifier = open('classifier.mat').sClassifier;
+[data, y] = SceneClassifier.getDataset("dataset");
 
 
-idx = fscmrmr(classifier.features, classifier.groundTruthLabels);
-mod(idx - 1, 10)
+%% Revision 1
+SC = SC.setRevision("SceneClassifier/Revision 1");
+SC.featrparams.K = 5;
+SC = SC.makeModel(x, y);
 
-% classifier.trainModel()
-%%
+%% Revision 2
+SC = SC.setRevision("SceneClassifier/Revision 2");
 
-% classifier.testModel();
+%% Revision 3
+SC = SC.setRevision("SceneClassifier/Revision 3");
 
+%% Revision 4
+SC = SC.setRevision("SceneClassifier/Revision 4");
+SC.featrparams.colorDim = 6;
+
+%% EXTRACT
+fprintf("extracting");
+x = SC.extractFeatureSpace(data);
+fprintf("\n\ndone\n");
+
+fprintf("training ..\n");
+SC.kfolds = 350;
+SC = SC.makeModel(x, y);
+fprintf("\n\ndone\n");
+
+[conf, ktop] = SC.getValidationData();
+confusionchart(conf, SceneClassifier.Scenes);
+
+res = SC.modelEvaluation();
+fprintf("%s\n", res);
+%% FINAL MODEL
+SC = SC.setRevision("SceneClassifier/Revision 3");
+fprintf("extracting");
+x = SC.extractFeatureSpace(data);
+fprintf("\n\ndone\n");
+model = fitcecoc(x, y);
 

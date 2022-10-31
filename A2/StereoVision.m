@@ -3,77 +3,44 @@ classdef StereoVision
     %   Detailed explanation goes here
     
     properties
-        rightimgs
-        leftimgs
-        posedata
-        parameters
-        n
-        points
-        pointcloud
-        pointcolors
-        terrain
-        zrange
+        % Used to keep track of revisions
+        revision
+        featureDetector
         
+        
+        % Tuning params
         max_delta
         max_ransac_dist
         tol
         
-        % Evaluation metrics
+        pointcloud      % the selected surface point cloud
+    end
+    
+    properties (Access = private)
+        % Loaded supplied data
+        posedata
+        parameters
+        terrain
+        rightimgs
+        leftimgs
+        zrange
+        n
+        
+        % Feature extraction metrics
         nfeatures   % number of features detected in left and right images
         nmatches
         ninliers 
         
+        % Computed information
+        pimages         % processed images left grayscale, right grayscale and the point color map
         impoints        % matched feature points for left and right images (x, y, 1)
-        pimages         % processed images left grayscale, right grayscale and left color
-         
+        points          % triangulated points for every input pair
+        pointcolors     % the colors of the points
+        
+        pcrevision      % the revision used to create the point cloud
     end
     
-    methods
-        %% Constructor
-        % Load data and parameters from the provided directory. Directory
-        % must contain the following
-        %   /images_left          (a folder containing left images)
-        %   /image_right          (a folder containing right images)
-        %   camera_pos_data.mat   (R, t, left_images, right_images)
-        %   stereo_calib.mat      (stereoParameters)
-        %   terrain.mat           (X, Y, height_grid)
-        function obj = StereoVision(data_filepath)
-            % load matlab files
-            pdata = load(sprintf("%s/camera_pose_data.mat", data_filepath)).camera_poses;
-            obj.parameters = load(sprintf("%s/stereo_calib.mat", data_filepath)).stereoParams;
-            obj.terrain = load(sprintf("%s/terrain.mat", data_filepath));
-            n = length(pdata.left_images);
-            
-            % load all images
-            rimgs = cell(n, 1);
-            limgs = cell(n, 1);
-            for i = 1:n
-                rimgs{i} = imread(sprintf("%s/images_right/%s", data_filepath, pdata.right_images{i}));
-                limgs{i} = imread(sprintf("%s/images_left/%s", data_filepath, pdata.left_images{i}));
-            end
-            obj.posedata = pdata;
-            obj.rightimgs = rimgs;
-            obj.leftimgs = limgs;
-            obj.n = n;
-            
-            obj.max_delta = 0.003;
-            obj.max_ransac_dist = 0.15;
-            obj.tol = 1e-3;
-            
-            % z range of supplied terrain
-            obj.zrange = [min(obj.terrain.height_grid, [], 'all'), max(obj.terrain.height_grid, [], 'all')];
-            
-            % space allocation
-            obj.points = cell(n, 1);
-            obj.pointcolors = cell(n, 1);
-            obj.pimages = cell(n, 3);
-            obj.nfeatures = zeros(n, 2);
-            obj.nmatches = zeros(n, 1);
-            obj.ninliers = zeros(n, 1);
-            obj.impoints = cell(n, 2); % x0, x1 for each input
-        end
-        
-        %% Algorithm Steps
+    methods (Access = private)
         
         % Get processed images returns the ith pair of images 
         % as grayscale undistorted images as well as the undistored color
@@ -83,12 +50,19 @@ classdef StereoVision
             img1 = double(obj.rightimgs{i}) / 255;    
             
             % remove camera distortion
-            img0 = undistortImage(img0, obj.parameters.CameraParameters1);
-            img1 = undistortImage(img1, obj.parameters.CameraParameters2);
+            img0ud = undistortImage(img0, obj.parameters.CameraParameters1);
+            img1ud = undistortImage(img1, obj.parameters.CameraParameters2);
             
-            img0color = StereoVision.minowski(img0);
-
-            obj.pimages(i, :) = {rgb2gray(img0), img1, imgaussfilt(img0color, 9)};
+            img0udf = StereoVision.minowski(img0ud);
+            img0cm = imgaussfilt(img0udf, 9);
+             
+            if obj.revision == 1, img0gi = img0udf; else, img0gi = img0ud; end
+            
+            obj.pimages(i, :) = {rgb2gray(img0gi), img1ud, img0cm};
+        end
+        
+        function features = detectFeatures(obj, img)
+            features = feval(obj.featureDetector, img);
         end
         
         % Finds a set of matched features given a pair of input images
@@ -97,8 +71,8 @@ classdef StereoVision
             img1 = obj.pimages{i, 2};
             
             % extraction using surf detection
-            sp0 = detectSURFFeatures(img0);
-            sp1 = detectSURFFeatures(img1);
+            sp0 = obj.detectFeatures(img0);
+            sp1 = obj.detectFeatures(img1);
             fcount = [sp0.Count, sp1.Count];
             
             % Match features
@@ -123,9 +97,13 @@ classdef StereoVision
             delta = x1 * F * (x0');
             delta = delta(logical(eye(length(x0)))); % extract diagonal
             
+            % choose delta max threshold based on revision
+            if obj.revision == 1, max_d = std(delta); else, max_d = 1; end
+            max_d = obj.max_delta * max_d;
+            
             % we will remove pairs for which the delta is more than std_max
             % deviation from 0
-            inlier = abs(delta) < obj.max_delta;
+            inlier = abs(delta) < max_d;
             lx0 = x0(inlier, :);
             lx1 = x1(inlier, :);
         end
@@ -179,18 +157,9 @@ classdef StereoVision
             end
         end
         
-        function pc = filterPointCloud(obj) 
-            nempty = ~cellfun(@isempty,obj.points);
-            pc = pointCloud(cell2mat(obj.points(nempty)), 'Color', cell2mat(obj.pointcolors(nempty)));
-%             [~, idx] = pcfitplane(pc, obj.max_ransac_dist);
-%              pc = select(pc, idx);
-        end
-        
-        %% Algorithm Methods
-        % Computes the point cloud for the ith input pair, information from
-        % each step will be stored
-        function obj = computePointCloud(obj, i)
-            fprintf("%i ", i);
+        % Computes the triangulated points for the ith input pair.
+        function obj = findPoints(obj, i)
+            fprintf(".");
             
             % process images
             obj = obj.processImages(i);
@@ -203,23 +172,88 @@ classdef StereoVision
             obj.impoints(i, :) = {lx0, lx1};
             obj.ninliers(i) = length(lx0);
             
-            % compute point cloud
+            % tirangulate points
             p_wrt_w = obj.triangulatePointCloud(i, lx0, lx1);
             obj.points{i} = p_wrt_w;
             obj.pointcolors{i} = StereoVision.getColorsAt(lx0, obj.pimages{i, 3});
-
-%             fprintf(" done.\n");
         end
+        
+        function pc = filterPointCloud(obj) 
+            nempty = ~cellfun(@isempty,obj.points);
+            pc = pointCloud(cell2mat(obj.points(nempty)), 'Color', cell2mat(obj.pointcolors(nempty)));
+            
+            % RANSAC model fitting for revisions above the second
+            if obj.revision > 2
+                [~, idx] = pcfitplane(pc, obj.max_ransac_dist);
+                pc = select(pc, idx);
+            end
+        end
+    end
+    
+    methods
+        %% Constructor and main solver
+        % Load data and parameters from the provided directory. Directory
+        % must contain the following
+        %   /images_left          (a folder containing left images)
+        %   /image_right          (a folder containing right images)
+        %   camera_pos_data.mat   (R, t, left_images, right_images)
+        %   stereo_calib.mat      (stereoParameters)
+        %   terrain.mat           (X, Y, height_grid)
+        function obj = StereoVision(data_filepath)
+            % load matlab files
+            pdata = load(sprintf("%s/camera_pose_data.mat", data_filepath)).camera_poses;
+            obj.parameters = load(sprintf("%s/stereo_calib.mat", data_filepath)).stereoParams;
+            obj.terrain = load(sprintf("%s/terrain.mat", data_filepath));
+            n = length(pdata.left_images);
+            
+            % load all images
+            rimgs = cell(n, 1);
+            limgs = cell(n, 1);
+            for i = 1:n
+                rimgs{i} = imread(sprintf("%s/images_right/%s", data_filepath, pdata.right_images{i}));
+                limgs{i} = imread(sprintf("%s/images_left/%s", data_filepath, pdata.left_images{i}));
+            end
+            obj.posedata = pdata;
+            obj.rightimgs = rimgs;
+            obj.leftimgs = limgs;
+            obj.n = n;
+            
+            obj.revision = 1;
+            
+            obj.max_delta = 0.003;
+            obj.max_ransac_dist = 0.414;
+            obj.tol = 1e-3;
+            obj.featureDetector = @detectSURFFeatures;
+            
+            % z range of supplied terrain
+            obj.zrange = [min(obj.terrain.height_grid, [], 'all'), max(obj.terrain.height_grid, [], 'all')];
+            
+            % space allocation
+            
+            obj.pimages = cell(n, 3);
+            obj.impoints = cell(n, 2); % x0, x1 for each input
+            obj.nfeatures = zeros(n, 2);
+            obj.nmatches = zeros(n, 1);
+            obj.ninliers = zeros(n, 1);
+            
+            obj.points = cell(n, 1);
+            obj.pointcolors = cell(n, 1);
+            obj.pcrevision = 0;
+        end
+        
         
         % Computes the point cloud for every input pair
-        function obj = computePointCloudAll(obj)
-            for i = 1:obj.n
-                obj = obj.computePointCloud(i); 
+        function obj = computePointCloud(obj, forceCompute)
+            fprintf("Computing point cloud");
+            if obj.pcrevision ~= obj.revision || exist("forceCompute", "var")
+                for i = 1:obj.n
+                    obj = obj.findPoints(i); 
+                end
+                obj.pcrevision = obj.revision;
             end
-            fprintf(" done.\n");
             obj.pointcloud = obj.filterPointCloud();
+            fprintf("\ndone.\n");
         end
-        
        
         
         %% Plot Methods
@@ -260,62 +294,57 @@ classdef StereoVision
         end
         
         %% Evaluation Methods
-        function featureEvaluation(obj)
+        function ep = featureEvaluation(obj)
             nm = obj.nmatches;
             nf = obj.nfeatures;
             nfs = [mean(nf); std(nf)];
             
             rj = (nm - obj.ninliers);
             
+            ep = [nfs(:, 1)', nfs(:, 2)', mean(nm), std(nm), mean(rj), std(rj)];
             fprintf("\nfeature evaluation:");
-            fprintf("\n\tfeatures found:\n\t\tleft %.f [%.f]\n\t\tright %.f [%.f]", nfs(:, 1), nfs(:, 2));
-            fprintf("\n\tmatches found:\n\t\t%.f [%.f]", mean(nm), std(nm));
-            fprintf("\n\trejected:\n\t\t%.f [%.f]\n", mean(rj), std(rj));
+            fprintf("\n\tfeatures found:\n\t\tleft %.f [%.f]\n\t\tright %.f [%.f]", ep(1:4));
+            fprintf("\n\tmatches found:\n\t\t%.f [%.f]", ep(5:6));
+            fprintf("\n\trejected:\n\t\t%.f [%.f]\n", ep(7:8));
         end
-        
-   
+
         function ep = pointCloudEvaluation(obj)
             t = obj.tol;
-            ap = cell2mat(obj.points(~cellfun(@isempty, obj.points)));
-            
-            % Area of entire point cloud is the number of unique x y pairs
-            a1 = length(unique(round(ap(:, 1:2)/t), 'rows')) * (t^2);
             
             % Interpolate the selected points onto the terrain using cubic
             % method
-            pc = obj.pointcloud.Location;
+            p = obj.pointcloud.Location;
             x = flip(obj.terrain.X);
-            iz = interp2(x, obj.terrain.Y, obj.terrain.height_grid, pc(:, 1), pc(:, 2), 'cubic');
+            pS_z = interp2(x, obj.terrain.Y, obj.terrain.height_grid, p(:, 1), p(:, 2), 'cubic');
             
-            % Remove points not above the terrain
-            nonnan = ~isnan(iz);
-            iz = iz(nonnan);
-            pc_nn = pc(nonnan, :);
+            % Select only non NaN surface iterpolations
+            nonnan = ~isnan(pS_z);
+            pS_z = pS_z(nonnan);
+            n_nan = length(p) - length(pS_z);
+            p_nn = p(nonnan, :);
             
-            % Area of valid selected point cloud 
-            a2 = length(unique(round(pc_nn(:, 1:2) / t), 'rows')) * (t^2);
+            % Area of valid selected point cloud
+            a2 = 1e4 * length(unique(round(p_nn(:, 1:2) / t), 'rows')) * (t^2);
             
             % compute residual error
-            z_resids = pc_nn(:, 3) - iz;
-            zr_std = sqrt(sum(z_resids.^2)/(length(z_resids) - 2));
+            z_resids = p_nn(:, 3) - pS_z;
+
+            zr_std = 100 * sqrt(sum(z_resids.^2)/(length(z_resids) - 2));
             
-            fprintf("\nterrain evaluation:\n\ttotal point area %.1fcm^2\n\tselected point area %.1fcm^2", a1*1e4, a2*1e4);
-            fprintf("\n\tz height residual error %.3f\n", zr_std);
+            fprintf("\npoint cloud evaluation:");
+            fprintf("\n\tselected point area %.fcm^2", a2);
+            fprintf("\n\tz height residual error %.1fcm range[%.1fcm, %.1fcm]\n", zr_std, min(z_resids)*100, max(z_resids)*100);
             
-            ep = [a2*1e4, zr_std];
+            ep = [a2, zr_std, n_nan];
         end
         
+        function ep = evaluate(obj)
+            ep = cat(2, obj.featureEvaluation(), obj.pointCloudEvaluation());
+        end
     end
     
     methods (Static)
         %% Static Algorithm Steps
-        
-        % Given a point cloud and the feature point pairs it was calculated
-        % from returns the indecies of all points that where not rejected. 
-        function idxs = getFinalInlierIndecies(pc, x0, x1)
-            idxs = logical(ones(length(pc), 1));
-        end
-    
         % Given the rgb image, returns a grayscale image that will be used
         % to find features.
         function rgb = minowski(img, p)
