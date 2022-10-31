@@ -9,9 +9,7 @@ const LETTERS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 class SignLive extends SvgPlus {
   constructor(el){
     super(el);
-    console.log('x');
     this.ondblclick = () => {
-      console.log('yyy');
       this.stopDetection()
     }
   }
@@ -21,12 +19,17 @@ class SignLive extends SvgPlus {
     this.innerHTML = `<video autoplay="true"></video>`;
     this.video = this.querySelector("video");
     this.words = this.createChild("div", {class: "words"});
-    console.log();
+
     this.startWebCam();
 
-    // this.addLetter("a")
+    this.addLetter("a")
 
     this.startDetection();
+  }
+
+  async onclick(){
+    // await this.startWebCam();
+    // console.log('xx');
   }
 
   async startWebCam(){
@@ -34,7 +37,7 @@ class SignLive extends SvgPlus {
     if (navigator.mediaDevices.getUserMedia) {
 
       let stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      
+
       video.srcObject = stream;
     }
   }
@@ -60,7 +63,6 @@ class SignLive extends SvgPlus {
   }
 
 
-
   async startDetection(){
     // this.startWebCam();
     let stop = false;
@@ -77,9 +79,13 @@ class SignLive extends SvgPlus {
   stopDetection(){}
 
 
-
   addLetter(letter) {
-    this.words.innerHTML += letter;
+    let text = this.words.innerHTML + letter;
+    if (text.length > 20) {
+      text = text.slice(1);
+    }
+    this.words.innerHTML = text;
+
   }
 
   clearWord(){}
