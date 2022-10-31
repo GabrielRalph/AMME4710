@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <title>AMME4710 Major Project</title>
     <link rel="stylesheet" href="https://arcms.w4v.es/Assets/Supreme/stylesheet.css">
+    <link rel="stylesheet" href="./slide-styles.css">
+    <script src = "./slides.js"></script>
     <script type = "module" src = "./signLive.js"></script>
   </head>
   <body>
@@ -218,87 +220,4 @@
       </ul>
     </p-slide>
   </body>
-
-  <script>
-    let n = document.querySelectorAll("p-slide").length;
-    let slide = 0;
-    function gotoSlide(x){
-      if (x < 0) x = 0;
-      if (x >= n) x = n - 1;
-      let sh = window.innerHeight;
-      slide = x;
-      window.scrollTo(0, sh * slide);
-      console.log(sh * slide);
-    }
-
-    gotoSlide(0);
-    window.onkeyup = (e) => {
-      switch (e.key) {
-        case "ArrowUp": gotoSlide(slide - 1);break
-        case "ArrowDown": gotoSlide(slide + 1);break
-      }
-    }
-    window.ondblclick = (e) => {
-      gotoSlide(slide + 1);
-    }
-    window.oncontextmenu = (e) => {
-      gotoSlide(slide - 1);
-      e.preventDefault();
-    }
-  </script>
-
-  <style>
-  .img-row {width: 40%;}
-  .img-row img {width: 40%;}
-  body {display: flex; flex-direction: column; align-items: center;}
-  row-1 {display: flex; width: 100%;}
-  row-1 > * {width: 100%;}
-  ul {
-    font-size: 0.8em;
-  }
-  p-slide {
-    width: calc((100vh - 15vmax) * 1.77);
-    height:calc(100vh - 15vmax);
-    font-size: 3vmin;
-    padding: 7.5vmax;
-    display: block;
-    overflow: hidden;
-  }
-
-  li {
-    margin: 1em;
-    list-style-type: square;
-  }
-  body {
-    margin: 0;
-    font-family: "Supreme LL TT";
-    overflow: hidden;
-  }
-  h1:first-of-type {margin-top: 0;}
-    /* sign-live {
-      display: block;
-      width: 100%;
-      height: 100%;
-      position: relative;
-    } */
-    .words {
-      background: #fff9;
-      backdrop-filter: blur(9px);
-      padding: 0.75em;
-      border-radius: 1em;
-      font-size: 1.2em;
-    }
-    sign-live {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      /* display: block; */
-      width: 100%;
-      min-height: 50%;
-      align-items: center;
-    }
-    video {
-      margin: auto;
-    }
-  </style>
 </html>

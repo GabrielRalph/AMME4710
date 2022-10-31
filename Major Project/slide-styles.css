@@ -1,0 +1,46 @@
+.img-row {width: 40%;}
+.img-row img {width: 40%;}
+body {display: flex; flex-direction: column; align-items: center;}
+row-1 {display: flex; width: 100%;}
+row-1 > * {width: 100%;}
+ul {
+  font-size: 0.8em;
+}
+p-slide {
+  width: calc((100vh - 15vmax) * 1.77);
+  height:calc(100vh - 15vmax);
+  font-size: 3vmin;
+  padding: 7.5vmax;
+  display: block;
+  overflow: hidden;
+}
+
+li {
+  margin: 1em;
+  list-style-type: square;
+}
+body {
+  margin: 0;
+  font-family: "Supreme LL TT";
+  overflow: hidden;
+}
+h1:first-of-type {margin-top: 0;}
+
+.words {
+  background: #fff9;
+  backdrop-filter: blur(9px);
+  padding: 0.75em;
+  border-radius: 1em;
+  font-size: 1.2em;
+}
+sign-live {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  min-height: 50%;
+  align-items: center;
+}
+video {
+  margin: auto;
+}
