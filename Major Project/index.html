@@ -11,6 +11,7 @@
   <body>
     <p-slide>
       <h1>Introduction</h1>
+      
       <span>Problem Statement - to offer a computer vision solution to the detection of American Sign Language (ASL) lettering through the aid of machine learning</span>
       <ul>
         <li>
@@ -27,6 +28,7 @@
 
     <p-slide>
       <h1>Lit Review</h1>
+
       <div style = "font-size: 0.9em;">
         <ul>
           <li>
@@ -88,48 +90,50 @@
 
     <p-slide>
       <h1>Method - Preparing data</h1>
+
       <row-1>
         <div style = "width: 75%; font-size: 0.9em;">
-        <ul>
-          <li>
-            Dataset description (where it’s from, what kinds of images, etc.)
-          </li>
-          <li>
-            Subsampling
-          </li>
-          <li>
-            Edge detection, preprocessing
-          </li>
-        </ul>
-        Contains 27000 images subsampled to 2700 for training data 100 images for each possible ASL character
-        <ul>
-          <li>
-            Images had various orientations of hands in different environments
-          </li>
-        </ul>
-        Seperated into training and testing datasets
-        Canny edge detection to help isolate hand and remove noise
-        <ul>
-          <li>
-            Also helped to remove effects of shadows and skin tone
-          </li>
-          <li>
-            Helps refine the data so the algorithm is limited to analyse what really matters - the shape of hand
-          </li>
-        </ul>
+          <ul>
+            <li>
+              Dataset description (where it’s from, what kinds of images, etc.)
+            </li>
+            <li>
+              Subsampling
+            </li>
+            <li>
+              Edge detection, preprocessing
+            </li>
+          </ul>
+          Contains 27000 images subsampled to 2700 for training data 100 images for each possible ASL character
+          <ul>
+            <li>
+              Images had various orientations of hands in different environments
+            </li>
+          </ul>
+          Seperated into training and testing datasets
+          Canny edge detection to help isolate hand and remove noise
+          <ul>
+            <li>
+              Also helped to remove effects of shadows and skin tone
+            </li>
+            <li>
+              Helps refine the data so the algorithm is limited to analyse what really matters - the shape of hand
+            </li>
+          </ul>
+          <span style = "font-size: 0.7em">Dataset retrieved from: https://www.kaggle.com/datasets/lexset/synthetic-asl-alphabet</span>
+        </div>
 
-        <span style = "font-size: 0.7em">Dataset retrieved from: https://www.kaggle.com/datasets/lexset/synthetic-asl-alphabet</span>
-      </div>
         <div class = "img-row">
           <row-1><img src = "./original1.png" /><img src = "./canny1.png" /></row-1>
           <row-1><img src = "./original2.png" /><img src = "./canny2.png" /></row-1>
           <row-1><img src = "./original3.png" /><img src = "./canny3.png" /></row-1>
         </div>
       </row-1>
-      <!-- <img src = "filesystem:https://docs.google.com/persistent/docs/documents/1neRnNypoHdARpCgIy-gWV0t-lDmg6ykXurENhzFnBnI/image/1NfzezQj_eO4iWBVr0t3PC_7sixVNNFnAh0roq2q87Ns" /> -->
     </p-slide>
+
     <p-slide>
       <h1>Method - Processing Data (Cont.)</h1>
+
       About the dataset
       <ul>
         <li>
@@ -143,8 +147,10 @@
         </li>
       </ul>
     </p-slide>
+
     <p-slide>
       <h1>Method - Training</h1>
+
       <ul>
         <li>
           Produced models on AlexNet, YOLO architectures
@@ -160,8 +166,10 @@
         </li>
       </ul>
     </p-slide>
+
     <p-slide>
       <h1>Method - Implementation</h1>
+
       <ul>
         <li>
           Implementing on ubiquitous platform
@@ -183,8 +191,10 @@
         </li>
       </ul>
     </p-slide>
+
     <p-slide>
       <h1>Experimental setup, benchmarking and Results</h1>
+
       <row-1>
         <ul>
           <li>
@@ -197,13 +207,16 @@
         <img style = "width: 50%" src = "./history.png" />
       </row-1>
     </p-slide>
+
     <p-slide>
       <h1>Live Demo</h1>
+
       <sign-live></sign-live>
     </p-slide>
 
     <p-slide>
       <h1>Discussion, Conclusion, Future Work</h1>
+
       <ul>
         <li>
           Implementing hand detection
