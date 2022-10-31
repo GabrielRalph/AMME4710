@@ -86,7 +86,8 @@
 
     <p-slide>
       <h1>Method - Preparing data</h1>
-      <div style = "font-size: 0.9em;">
+      <row-1>
+        <div style = "width: 75%; font-size: 0.9em;">
         <ul>
           <li>
             Dataset description (where it’s from, what kinds of images, etc.)
@@ -115,8 +116,14 @@
           </li>
         </ul>
 
-        <span style = "font-size: 0.8em">Dataset retrieved from: https://www.kaggle.com/datasets/lexset/synthetic-asl-alphabet</span>
+        <span style = "font-size: 0.7em">Dataset retrieved from: https://www.kaggle.com/datasets/lexset/synthetic-asl-alphabet</span>
       </div>
+        <div style = "width: auto; height: 100%;">
+          <row-1><img src = "./original1.png" /><img src = "./canny1.png" /></row-1>
+          <row-1><img src = "./original2.png" /><img src = "./canny2.png" /></row-1>
+          <row-1><img src = "./original3.png" /><img src = "./canny3.png" /></row-1>
+        </div>
+      </row-1>
       <!-- <img src = "filesystem:https://docs.google.com/persistent/docs/documents/1neRnNypoHdARpCgIy-gWV0t-lDmg6ykXurENhzFnBnI/image/1NfzezQj_eO4iWBVr0t3PC_7sixVNNFnAh0roq2q87Ns" /> -->
     </p-slide>
     <p-slide>
@@ -176,14 +183,18 @@
     </p-slide>
     <p-slide>
       <h1>Experimental setup, benchmarking and Results</h1>
-      <ul>
-        <li>
-          Data is collected → training set subsampled → edge detection to enhance relevant features and negate effect of environment/skin colour → pass through CNN inspired by AlexNet → tested against our own dataset
-        </li>
-        <li>
-          Validation accuracy of 74.5%
-        </li>
-      </ul>
+
+      <row-1>
+        <ul>
+          <li>
+            Data is collected → training set subsampled → edge detection to enhance relevant features and negate effect of environment/skin colour → pass through CNN inspired by AlexNet → tested against our own dataset
+          </li>
+          <li>
+            Validation accuracy of 74.5%
+          </li>
+        </ul>
+        <img style = "width: 50%" src = "./history.png" />
+      </row-1>
     </p-slide>
     <p-slide>
       <h1>Live Demo</h1>
@@ -227,7 +238,7 @@
         case "ArrowDown": gotoSlide(slide + 1);break
       }
     }
-    window.onclick = (e) => {
+    window.ondblclick = (e) => {
       gotoSlide(slide + 1);
     }
     window.oncontextmenu = (e) => {
