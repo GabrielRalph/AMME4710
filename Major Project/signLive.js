@@ -1,4 +1,5 @@
 import {SvgPlus, Vector} from "../SvgPlus/4.js"
+import * as Model from "./cnn-model.js"
 
 async function delay(x) {
   return new Promise((resolve, reject) => {
@@ -89,9 +90,11 @@ class SignLive extends SvgPlus {
     let {video} = this;
     if (navigator.mediaDevices.getUserMedia) {
       let stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+      await Model.load();
+
       video.srcObject = stream;
       this.start_testing();
-
     }
   }
 
