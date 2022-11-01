@@ -6,12 +6,13 @@ row-1 {
   display: flex; width: 100%;
   gap:1em;
 }
+video {max-width: 80vw;}
 row-1 > * {width: 100%;}
 ul {
   font-size: 0.8em;
 }
 p-slide {
-  width: calc((100vh - 15vmax) * 1.77);
+  width: calc(100vw - 15vmax);
   height:calc(100vh - 15vmax);
   font-size: 3vmin;
   padding: 7.5vmax;
@@ -47,9 +48,6 @@ sign-live {
   width: 100%;
   min-height: 50%;
   align-items: center;
-}
-video {
-  margin: auto;
 }
 
 table {

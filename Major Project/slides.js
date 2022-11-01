@@ -16,10 +16,3 @@ window.onkeyup = (e) => {
     case "ArrowDown": gotoSlide(slide + 1);break
   }
 }
-window.ondblclick = (e) => {
-  gotoSlide(slide + 1);
-}
-window.oncontextmenu = (e) => {
-  gotoSlide(slide - 1);
-  e.preventDefault();
-}
