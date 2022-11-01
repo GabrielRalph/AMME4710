@@ -66,7 +66,7 @@ class SignLive extends SvgPlus {
   }
   start_testing(){
     let {canny} = this;
-    canny.onmousemove = (e) => {
+    canny.onclick = (e) => {
       let v = new Vector(e.x, e.y);
       let [pos, size] = this.video.bbox;
       let vnorm = v.sub(pos).div(size);
