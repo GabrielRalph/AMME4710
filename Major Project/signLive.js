@@ -70,10 +70,11 @@ class SignLive extends SvgPlus {
       let v = new Vector(e.x, e.y);
       let [pos, size] = this.video.bbox;
       let vnorm = v.sub(pos).div(size);
+      let thv = vnorm.mul(300).add(5).round(2);
 
-      this.th1 = 20 + 300 * vnorm.x;
-      this.th2 = 20 + 300 * vnorm.y;
-      console.log(`th1: ${this.th1}\nth2: ${this.th2}`);
+      this.th1 = thv.x;
+      this.th2 = thv.y;
+      this.words.innerHTML = `th1: ${this.th1}<br />sth2: ${this.th2}`
     }
     this.th1 = 50;
     this.th2 = 50;
