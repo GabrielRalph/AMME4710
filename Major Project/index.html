@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/gh/wallat/compiled-opencvjs/v4.2.0/opencv.js" async onload="window.cv = cv" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js" onload = "window.tf = tf"></script>
     <script type = "module" src = "./slides.js"></script>
-    <script type = "module" src = "./signLive.js"></script>
+    <script type = "module" src = "./SignLive/signLive.js"></script>
   </head>
   <body>
     <p-slide>
@@ -96,10 +96,7 @@
 
         <!-- <div class = "img-row"> -->
           <figure style = "width:35%">
-            <img width = "100%" src = "./all.png" />
-                <!-- <row-1><img src = "./original1.png" /><img src = "./canny1.png" /></row-1>
-                <row-1><img src = "./original2.png" /><img src = "./canny2.png" /></row-1>
-                <row-1><img src = "./original3.png" /><img src = "./canny3.png" /></row-1> -->
+            <img width = "100%" src = "./Assets/all.png" />
           </figure>
         <!-- </div> -->
       </row-1>
@@ -123,7 +120,7 @@
       </ul>
       <figure>
 
-        <img src ="./fig5.png" width = "70%" style = "margin: 3% 15%"/>
+        <img src ="./Assets/fig5.png" width = "70%" style = "margin: 3% 15%"/>
       </figure>
     </p-slide>
 
@@ -165,7 +162,7 @@
           </li>
         </ul>
         <figure style = "width: 60%">
-          <img width = "100%" src = "./history.png" />
+          <img width = "100%" src = "./Assets/history.png" />
         </figure>
       </row-1>
     </p-slide>
@@ -173,7 +170,7 @@
     <p-slide>
       <h1>Live Demo</h1>
 
-      <sign-live></sign-live>
+      <sign-live src = "./Model/model.json"></sign-live>
     </p-slide>
 
     <p-slide>
