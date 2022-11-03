@@ -7,7 +7,82 @@ async function delay(x) {
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
 
+let time = 0;
+function tic(){time = performance.now();}
+function toc(){
+  let newTime = performance.now();
+  let delta = newTime - time;
+  time = newTime;
+  return Math.round(delta * 100) / 100;
+}
 
+function cannyEdgeDetection(canvasInput, canvasOutput, th1, th2) {
+  let cv = window.cv;
+  let cannyOutput = null;
+
+  try {
+    let src = cv.imread(canvasInput); // load the image from <img>
+    cannyOutput = new cv.Mat();
+
+    cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
+
+    cv.Canny(src, cannyOutput, th1, th2, 3, false); // You can try more different parameters
+    cv.imshow(canvasOutput, cannyOutput); // display the output to canvas
+
+    src.delete(); // remember to free the memory
+  } catch (e) {
+    cannyOutput = null;
+  }
+
+  return cannyOutput;
+}
+
+function cropAndResizeCanny(cannyOutput, height, width, channels) {
+  let {tf} = window;
+  let irows = height;
+  let icols = width;
+  let croppedAndResized = null;
+  let pos = null;
+  if (tf && cannyOutput) {
+    let {rows, cols, data} = cannyOutput;
+    let mat1d = tf.tensor1d(data);
+    let mat4d = mat1d.reshape([rows, cols, channels]);
+    mat1d.dispose();
+
+    let min = rows < cols ? rows : cols;
+    let rowstart = rows < cols ? 0 : Math.round((rows - cols) / 2);
+    let colstart = cols < rows ? 0 : Math.round((cols - rows) / 2);
+    pos = [rowstart, colstart, min, min];
+    let cropped = mat4d.slice([rowstart, colstart, 0], [min, min, channels]);
+    mat4d.dispose();
+
+    croppedAndResized = tf.image.resizeNearestNeighbor(cropped, [irows, icols]);
+    cropped.dispose();
+  }
+
+  return [croppedAndResized, pos];
+}
+
+async function getModelPrediction(model, input){
+  let y = model.predict(input);
+  let data = (await y.array())[0];
+  y.dispose();
+
+  return data;
+}
+
+function bestLetter(guessConf){
+  let maxConf = 0;
+  let bestGuess = 0;
+  for (let i = 0; i < guessConf.length; i++) {
+    let conf = guessConf[i]
+    if (conf > maxConf) {
+      maxConf = conf;
+      bestGuess = LETTERS[i];
+    }
+  }
+  return bestGuess;
+}
 
 class SignLive extends SvgPlus {
   constructor(el){
@@ -32,9 +107,57 @@ class SignLive extends SvgPlus {
         }
       });
     }
-    this.incanv.styles = {
-      "pointer-events": "none"
+    this.loader = this.vBox.createChild("div", {
+      style: {
+        "position": "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        "--load": 0,
+        "backdrop-filter": "blur(calc((1 - var(--load)) * 50px))",
+        "-wibkit-backdrop-filter": "blur((1 - calc(var(--load)) * 50px))",
+      }
+    });
+    this.text_center = this.vBox.createChild("div", {
+      style: {
+        "position": "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        "pointer-events": "none",
+
+      }
+    })
+    this.text_corner = this.vBox.createChild("div", {
+      style: {
+        "position": "absolute",
+        "pointer-events": "none",
+        top: 0,
+        left: 0,
+        color: "blue",
+        "font-size": "0.6em",
+        "padding": "0.3em",
+        background: "#fff5",
+        "border-radius": "0 0 0.5em 0"
+      }
+    })
+
+    this.th1 = 70;
+    this.th2 = 80;
+    this.loader.onclick = (e) => {
+      let v = new Vector(e.x, e.y);
+      let [pos, size] = this.loader.bbox;
+      let vnorm = v.sub(pos).div(size);
+      let thv = vnorm.mul(300).add(5).round(2);
+
+      this.th1 = thv.x;
+      this.th2 = thv.y;
+      console.log('xx');
+      this.text_corner.innerHTML = `th1: ${this.th1}<br />sth2: ${this.th2}`
     }
+
+
     this.words = this.createChild("div", {class: "words"});
     this.load();
   }
@@ -43,7 +166,6 @@ class SignLive extends SvgPlus {
     let {tf} = window;
     let data = await fetch("./data.json");
     data = await data.json();
-    console.log(data);
     let input = tf.tensor4d(data.input);
     this.input = input;
     this.predict_letter();
@@ -51,70 +173,57 @@ class SignLive extends SvgPlus {
 
   }
 
-  async start_processing(){
-    let {canny} = this;
-    canny.onclick = (e) => {
-      let v = new Vector(e.x, e.y);
-      let [pos, size] = this.video.bbox;
-      let vnorm = v.sub(pos).div(size);
-      let thv = vnorm.mul(300).add(5).round(2);
+  start_processing(){
 
-      this.th1 = thv.x;
-      this.th2 = thv.y;
-      this.words.innerHTML = `th1: ${this.th1}<br />sth2: ${this.th2}`
-    }
-    this.th1 = 50;
-    this.th2 = 50;
-    console.log("loaded");
-    while(!this.stopped) {
-      await this.process_frame();
-    }
+
+    console.log("processing");
+    this.process_frames();
+    this.predict_letters();
   }
 
-  onclick(){
-    this.process_frame();
-  }
-
-  async process_frame(){
-    this.capture_frame();
-    this.apply_canny();
-    this.prepare_input();
-    // await this.display_input();
-    await this.predict_letter();
+  async process_frames(){
+    while (!this.process_frames_stopped) {
+      tic();
+      let time = 0;
+      if (!document.hidden) {
+        this.capture_frame();
+        time = toc();
+      }
+      await delay(20);
+    }
   }
   capture_frame(){
-    let {video, canvas} = this;
+    let {tf} = window;
+    let {video, canvas, canny, th1, th2} = this;
+
+
     canvas.width = video.offsetWidth;
     canvas.height = video.offsetHeight;
 
+    let {width, height} = canvas;
+
     let ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    let input = cannyEdgeDetection(canvas, canny, th1, th2);
+
+
+    if (this.input != null) {
+      this.input.delete();
+      this.input = null;
+    }
+
+    this.input = input;
   }
-  apply_canny(){
-    let cv = window.cv;
-    if (!cv) return;
-    let {canny, canvas, th1, th2} = this;
-    var src = cv.imread(canvas); // load the image from <img>
-    var dst = new cv.Mat();
 
-    cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
-
-    cv.Canny(src, dst, th1, th2, 3, false); // You can try more different parameters
-    cv.imshow(canny, dst); // display the output to canvas
-
-    this.inputData = dst;
-
-    src.delete(); // remember to free the memory
-  }
   async display_input(){
     let {incanv, input} = this;
     incanv.width = 513;
     incanv.height = 512;
-    console.log(input.size);
-    // let resize = input.reshape([512*513*3]);
+
     let arr = await input.array();
     let [batch, height, width, cdim] = input.shape;
-    console.log(batch, width, height, cdim);
+
     let ctx = incanv.getContext('2d');
     let imdata = ctx.createImageData(width, height);
     for (let i = 0; i < height; i++) {
@@ -133,71 +242,49 @@ class SignLive extends SvgPlus {
 
     ctx.putImageData(imdata, 0, 0);
   }
-  prepare_input(){
-    let {tf} = window;
-    let irows = 512;
-    let icols = 513;
 
-    let {canny, inputData, model} = this;
-    if (tf && inputData) {
-      let {rows, cols, data} = inputData;
-      let mat1d = tf.tensor1d(data);
-      // console.log("MAT 1D");
-      // mat1d.sum().print()
+  async predict_letters(){
+    while (!this.predict_letters_stopped) {
+      let time = 0;
+      if (!document.hidden) {
+        tic();
+        await this.predict_letter();
+        let time = toc();
+        // console.log(`prediction toc ${time}ms`);
+      }
 
-      let mat4d = mat1d.reshape([1, rows, cols, 1]);
-      // console.log("MAT 4D");
-      // mat4d.sum().print();
-      mat1d.dispose();
-
-      let min = rows < cols ? rows : cols;
-      let rowstart = rows < cols ? 0 : Math.round((rows - cols) / 2);
-      let colstart = cols < rows ? 0 : Math.round((cols - rows) / 2);
-      let mat4dq = mat4d.slice([0, rowstart, colstart, 0], [1, min, min, 1]);
-      // console.log("MAT 4D Square");
-      // mat4dq.sum().print();
-      mat4d.dispose();
-
-      let in4d = tf.image.resizeNearestNeighbor(mat4dq, [irows, icols]);
-      // console.log("input 4D (1 x 512 x 513 x 1)");
-      // in4d.sum().print();
-      mat4dq.dispose();
-
-      let in4d3 = in4d.concat(in4d, 3).concat(in4d, 3);
-      // console.log("input 4D (1 x 512 x 513 x 3)");
-      // in4d3.sum().print();
-      in4d.dispose();
-
-      this.input = in4d3;
+      if (time < 30) {
+        await delay(30);
+      }
     }
-    if (inputData) inputData.delete();
-    this.inputData = null;
   }
   async predict_letter(){
-    let {model, input} = this;
-    if (input) {
-      if (model) {
-        input.sum().print();
-        let y = model.predict(input);
-        let data = (await y.array())[0];
-        y.dispose();
+    const height = 512;
+    const width = 513;
+    let {model, input, canny} = this;
+    if (model && input) {
+      this.input = null;
 
-        let str = "";
-        let maxConf = 0;
-        let bestGuess = 0;
-        for (let i = 0; i < data.length; i++) {
-          let v = (new Vector(data[i])).round(5)
-          let conf = v.x;
-          str += `${LETTERS[i]}: ${conf}\n`;
-          if (conf > maxConf) {
-            maxConf = conf;
-            bestGuess = LETTERS[i];
-          }
-        }
-        console.log(str);
+      let parsed = null
+      let [cropped, pos] = cropAndResizeCanny(input, height, width, 1);
+      input.delete();
+      if (cropped) {
+
+        let rgb = tf.image.grayscaleToRGB(cropped);
+        cropped.dispose();
+
+        parsed = rgb.reshape([1, height, width, 3]);
+        rgb.dispose();
+      }
+
+
+      if (parsed) {
+        let data = await getModelPrediction(model, parsed);
+        parsed.dispose();
+
+        let bestGuess = bestLetter(data);
         this.words.innerHTML = bestGuess;
       }
-      input.dispose();
     }
   }
 
@@ -209,7 +296,14 @@ class SignLive extends SvgPlus {
   }
   async load_model(){
     let {tf} = window;
-    this.model = await tf.loadLayersModel(this.getAttribute("src"));
+    this.model = await tf.loadLayersModel(this.getAttribute("src"), {onProgress: (e) => {
+      this.loader.styles = {
+        "--load": e,
+      }
+      this.text_center.innerHTML = Math.round(e * 100) + "%";
+      console.log(e);
+    }});
+    this.text_center.innerHTML = "";
     // await this.test_data();
     console.log("model loaded");
   }
