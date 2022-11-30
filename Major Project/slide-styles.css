@@ -6,6 +6,9 @@ row-1 {
   display: flex; width: 100%;
   gap:1em;
 }
+.center {
+  text-align: center;
+}
 video {max-width: 80vw;}
 row-1 > * {width: 100%;}
 ul {

@@ -126,26 +126,38 @@
 
     <p-slide>
       <h1>Method - Implementation</h1>
+      JavaScript was choosen as a platform for implementation due to it's ability to be run on
+      essentially any device with internet connection.
+      <row-1 style = "margin: 0.5em 0">
+        <div class = "center">
+          <img style = "height: 1.7em" src = "https://js.tensorflow.org/images/lockup.svg" />
+        </div>
+        <div class = "center">
+          <img style = "height: 2.5em" src = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/OpenCV_Logo_with_text.png/487px-OpenCV_Logo_with_text.png" />
+        </div>
+        <div class = "center">
+          JavaScript ES6
+        </div>
+      </row-1>
+        The keras model was saved as JSON file and loaded into browser
+        using the TensorFlow JS API.<br /><br />
 
+      <b>Realtime prection process</b>
       <ul>
+
         <li>
-          Implementing on ubiquitous platform
+          Frames from webcam captured in canvas.
         </li>
         <li>
-          Real time accurate detection
+          Canny edge detection applied to canvas.
         </li>
         <li>
-          Captioning
+          Resizing and cropping.
         </li>
         <li>
-          Detecting hands - predefined area where hands need to be placed
+          Prediction from model displayed on screen.
         </li>
-        <li>
-          Crop frame and predict with TensorFlow.js
-        </li>
-        <li>
-          Localisation of web solution
-        </li>
+
       </ul>
     </p-slide>
 

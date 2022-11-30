@@ -7,14 +7,12 @@ async function delay(x) {
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
 
-let time = 0;
-function tic(){time = performance.now();}
-function toc(){
-  let newTime = performance.now();
-  let delta = newTime - time;
-  time = newTime;
-  return Math.round(delta * 100) / 100;
+function tic(){
+  let start = performance.now();
+  let toc = () => {return performance.now() - start;}
+  return toc;
 }
+
 
 function cannyEdgeDetection(canvasInput, canvasOutput, th1, th2) {
   let cv = window.cv;
@@ -87,8 +85,34 @@ function bestLetter(guessConf){
 class SignLive extends SvgPlus {
   constructor(el){
     super(el);
+    this._times = {};
     this.ondblclick = () => {
-      this.stopDetection()
+      this.log_time_stats();
+    }
+  }
+
+  add_time(delta, name) {
+    if (!(name in this._times)) {
+      this._times[name] = [];
+    }
+    this._times[name].push(delta);
+  }
+  log_time_stats() {
+    // console.log(`Time STATS for ${}`);
+    let times = this._times;
+    console.log(times);
+    for (let name in times) {
+      let data = times[name];
+      let mean = 0;
+      let std = 0;
+      for (let time of data)
+        mean += time;
+      mean /= data.length;
+      for (let time of data)
+        std += Math.pow(time - mean, 2);
+      std = Math.round(Math.sqrt(std / data.length));
+      mean = Math.round(mean);
+      console.log(`${name} took mean = ${mean}ms std = ${std} n = ${data.length}`)
     }
   }
 
@@ -157,7 +181,6 @@ class SignLive extends SvgPlus {
       this.text_corner.innerHTML = `th1: ${this.th1}<br />sth2: ${this.th2}`
     }
 
-
     this.words = this.createChild("div", {class: "words"});
     this.load();
   }
@@ -172,50 +195,6 @@ class SignLive extends SvgPlus {
     await this.display_input();
 
   }
-
-  start_processing(){
-
-
-    console.log("processing");
-    this.process_frames();
-    this.predict_letters();
-  }
-
-  async process_frames(){
-    while (!this.process_frames_stopped) {
-      tic();
-      let time = 0;
-      if (!document.hidden) {
-        this.capture_frame();
-        time = toc();
-      }
-      await delay(20);
-    }
-  }
-  capture_frame(){
-    let {tf} = window;
-    let {video, canvas, canny, th1, th2} = this;
-
-
-    canvas.width = video.offsetWidth;
-    canvas.height = video.offsetHeight;
-
-    let {width, height} = canvas;
-
-    let ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    let input = cannyEdgeDetection(canvas, canny, th1, th2);
-
-
-    if (this.input != null) {
-      this.input.delete();
-      this.input = null;
-    }
-
-    this.input = input;
-  }
-
   async display_input(){
     let {incanv, input} = this;
     incanv.width = 513;
@@ -243,18 +222,69 @@ class SignLive extends SvgPlus {
     ctx.putImageData(imdata, 0, 0);
   }
 
+
+  start_processing(){
+    console.log("processing");
+    this.process_frames();
+    this.predict_letters();
+  }
+
+  async process_frames(){
+    while (!this.process_frames_stopped) {
+      let time = 0;
+      if (!document.hidden) {
+        let toc = tic();
+        this.capture_frame();
+        time = toc();
+        this.add_time(time, "capture frame");
+      }
+      this._last_toc = tic();
+      if (time < 35) {
+        await delay(35);
+      }
+    }
+  }
+  capture_frame(){
+    let {tf} = window;
+    let {video, canvas, canny, th1, th2} = this;
+
+
+    canvas.width = video.offsetWidth;
+    canvas.height = video.offsetHeight;
+
+    let {width, height} = canvas;
+
+    let toc = tic();
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    this.add_time(toc(), "webcam capture");
+
+    toc = tic();
+    let input = cannyEdgeDetection(canvas, canny, th1, th2);
+    this.add_time(toc(), "canny edge");
+
+    if (this.input != null) {
+      this.input.delete();
+      this.input = null;
+    }
+    this.input = input;
+  }
+
   async predict_letters(){
     while (!this.predict_letters_stopped) {
       let time = 0;
       if (!document.hidden) {
-        tic();
+        if (this._last_toc) {
+          this.add_time(this._last_toc(), "pfreq");
+        }
+        let toc = tic();
         await this.predict_letter();
-        let time = toc();
-        // console.log(`prediction toc ${time}ms`);
+        time = toc();
+        this.add_time(time, "letter prediction")
       }
 
-      if (time < 30) {
-        await delay(30);
+      if (time < 130) {
+        await delay(130);
       }
     }
   }
@@ -287,6 +317,7 @@ class SignLive extends SvgPlus {
       }
     }
   }
+
 
   async load_opencv(){}
   async start_webcam(){
